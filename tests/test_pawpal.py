@@ -138,3 +138,31 @@ def test_one_off_task_does_not_recur():
     upcoming = Scheduler().complete_task(pet, bath)
     assert upcoming is None
     assert len(pet.tasks) == 1
+
+
+def test_owner_with_no_pets_is_empty():
+    owner = Owner("Sam")
+    sched = Scheduler()
+    assert owner.all_tasks() == []
+    assert sched.daily_plan(owner) == []
+    assert sched.find_conflicts(owner) == []
+
+
+def test_pet_with_no_tasks():
+    owner = Owner("Sam")
+    pet = Pet("Biscuit", "dog", "Golden Retriever")
+    owner.add_pet(pet)
+    assert owner.all_tasks() == []
+    assert Scheduler().daily_plan(owner) == []
+
+
+def test_conflict_for_same_pet_at_same_time():
+    owner = Owner("Sam")
+    pet = Pet("Biscuit", "dog", "Golden Retriever")
+    owner.add_pet(pet)
+    pet.add_task(Task("Walk", "08:00", "daily"))
+    pet.add_task(Task("Breakfast", "08:00", "daily"))
+
+    conflicts = Scheduler().find_conflicts(owner)
+    assert len(conflicts) == 1
+    assert "08:00" in conflicts[0]

@@ -80,18 +80,29 @@ pytest --cov
 
 Note: on my Mac `python` isn't installed, only `python3`, so I run `python3 -m pytest` instead.
 
+The tests in `tests/test_pawpal.py` cover the core behavior:
+
+- adding tasks to a pet and collecting them across all of an owner's pets
+- sorting tasks into chronological order
+- filtering by pet and by completion status
+- recurring tasks (a completed daily task comes back for the next day, weekly for the next week)
+- conflict detection when two tasks share the same time slot
+- edge cases like an owner with no pets or a pet with no tasks
+
 Sample test output:
 
 ```
 ============================= test session starts ==============================
 platform darwin -- Python 3.9.6, pytest-8.4.2, pluggy-1.6.0
 rootdir: /Users/sufiyanrauf/Desktop/ai110-module2show-pawpal-starter
-collected 14 items
+collected 17 items
 
-tests/test_pawpal.py ..............                                      [100%]
+tests/test_pawpal.py .................                                   [100%]
 
-============================== 14 passed in 0.01s ==============================
+============================== 17 passed in 0.02s ==============================
 ```
+
+**Confidence level:** ⭐⭐⭐⭐ (4/5). The happy paths and the main edge cases all pass, so I'm fairly confident the core logic works. I held back one star because I haven't tested things like overlapping durations or badly formatted times yet.
 
 ## 📐 Smarter Scheduling
 
