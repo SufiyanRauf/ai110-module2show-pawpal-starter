@@ -56,9 +56,19 @@ else:
 st.divider()
 
 st.subheader("Today's schedule")
-plan = Scheduler().daily_plan(owner)
+scheduler = Scheduler()
+
+# warn about any double-booked time slots before showing the plan
+for warning in scheduler.find_conflicts(owner):
+    st.warning(warning)
+
+plan = scheduler.daily_plan(owner)
 if plan:
-    for task in plan:
-        st.write(task.describe())
+    pet_of = {id(t): p.name for p in owner.pets for t in p.tasks}
+    rows = [
+        {"Time": t.time, "Task": t.description, "Pet": pet_of[id(t)], "Repeats": t.frequency}
+        for t in plan
+    ]
+    st.table(rows)
 else:
     st.info("Nothing scheduled yet. Add some tasks to see the plan.")
