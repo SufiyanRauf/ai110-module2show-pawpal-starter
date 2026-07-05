@@ -166,3 +166,29 @@ def test_conflict_for_same_pet_at_same_time():
     conflicts = Scheduler().find_conflicts(owner)
     assert len(conflicts) == 1
     assert "08:00" in conflicts[0]
+
+
+def test_next_slot_is_the_time_when_nothing_is_booked():
+    owner = Owner("Sam")
+    owner.add_pet(Pet("Biscuit", "dog", "Golden Retriever"))
+    assert Scheduler().next_available_slot(owner, after="08:00") == "08:00"
+
+
+def test_next_slot_skips_taken_times():
+    owner = Owner("Sam")
+    pet = Pet("Biscuit", "dog", "Golden Retriever")
+    owner.add_pet(pet)
+    pet.add_task(Task("Walk", "08:00", "daily"))
+    pet.add_task(Task("Meds", "08:30", "daily"))
+
+    assert Scheduler().next_available_slot(owner, after="08:00") == "09:00"
+
+
+def test_next_slot_ignores_completed_tasks():
+    owner = Owner("Sam")
+    pet = Pet("Biscuit", "dog", "Golden Retriever")
+    owner.add_pet(pet)
+    pet.add_task(Task("Walk", "08:00", "daily", completed=True))
+
+    # the 08:00 task is done, so that slot is free again
+    assert Scheduler().next_available_slot(owner, after="08:00") == "08:00"

@@ -42,3 +42,6 @@ print("  next walk due:", upcoming.due_date)
 print("\nCompleted tasks so far:")
 for task in scheduler.filter_by_status(owner.all_tasks(), completed=True):
     print("  " + task.describe())
+
+print("\nNext free time slot after 08:00:")
+print("  " + scheduler.next_available_slot(owner, after="08:00"))

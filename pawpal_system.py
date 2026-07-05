@@ -9,6 +9,17 @@ from datetime import date, timedelta
 REPEAT_DAYS = {"daily": 1, "weekly": 7}
 
 
+def _to_minutes(hhmm):
+    """Turn an "HH:MM" string into minutes since midnight."""
+    hours, minutes = hhmm.split(":")
+    return int(hours) * 60 + int(minutes)
+
+
+def _to_hhmm(total_minutes):
+    """Turn minutes since midnight back into an "HH:MM" string."""
+    return f"{total_minutes // 60:02d}:{total_minutes % 60:02d}"
+
+
 @dataclass
 class Task:
     """A single pet care activity, e.g. a walk or a dose of medication."""
@@ -122,6 +133,18 @@ class Scheduler:
                 names = ", ".join(f"{t.description} ({p.name})" for p, t in items)
                 warnings.append(f"Conflict at {slot}: {names}")
         return warnings
+
+    def next_available_slot(self, owner: Owner, after: str = "08:00",
+                            step_minutes: int = 30) -> str | None:
+        """Suggest the next open time slot at or after `after`, or None if the day is full."""
+        taken = {t.time for t in self.filter_by_status(owner.all_tasks(), completed=False)}
+        minutes = _to_minutes(after)
+        while minutes < 24 * 60:
+            slot = _to_hhmm(minutes)
+            if slot not in taken:
+                return slot
+            minutes += step_minutes
+        return None
 
     def explain(self, owner: Owner) -> str:
         """Return a short human-readable summary of today's plan."""

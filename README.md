@@ -9,6 +9,7 @@
 - See the day's tasks sorted into chronological order across all pets
 - Filter tasks by pet or by whether they're done
 - Get a warning when two tasks are booked at the same time
+- Suggest the next open time slot when you're looking for a free time to add a task
 - Recurring tasks reschedule themselves: finishing a daily task adds tomorrow's, weekly adds next week's
 - Data stays put while you use the app (Streamlit session state)
 
@@ -76,6 +77,9 @@ Marking Biscuit's morning walk done (it's daily, so it should come back):
 
 Completed tasks so far:
   08:00 - Morning walk (daily) [done]
+
+Next free time slot after 08:00:
+  08:30
 ```
 
 ## 🧪 Testing PawPal+
@@ -124,6 +128,7 @@ These are the scheduling features I added, and the method that handles each one.
 | Filtering | `Scheduler.filter_by_pet()`, `Scheduler.filter_by_status()` | Pull tasks for one pet, or only the done / not-done ones. |
 | Conflict handling | `Scheduler.find_conflicts()` | Groups pending tasks by time slot and returns a warning string for any slot with more than one task. Checks exact time matches only. |
 | Recurring tasks | `Task.next_occurrence()`, `Scheduler.complete_task()` | When a daily/weekly task is completed, a new copy is added with `due_date` moved ahead using `timedelta` (daily = +1 day, weekly = +7). |
+| Next available slot | `Scheduler.next_available_slot()` | Steps forward from a start time in fixed increments (default 30 min) and returns the first slot no pending task is using. |
 
 ## 📸 Demo Walkthrough
 
@@ -172,4 +177,7 @@ Marking Biscuit's morning walk done (it's daily, so it should come back):
 
 Completed tasks so far:
   08:00 - Morning walk (daily) [done]
+
+Next free time slot after 08:00:
+  08:30
 ```
