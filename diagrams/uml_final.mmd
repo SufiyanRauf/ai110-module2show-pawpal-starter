@@ -5,6 +5,7 @@ classDiagram
         +str description
         +str time
         +str frequency
+        +str priority
         +bool completed
         +date due_date
         +mark_complete() None
@@ -31,11 +32,13 @@ classDiagram
     class Scheduler {
         +get_tasks(owner) List~Task~
         +sort_by_time(tasks) List~Task~
+        +sort_by_priority(tasks) List~Task~
         +filter_by_status(tasks, completed) List~Task~
         +filter_by_pet(owner, pet_name) List~Task~
         +daily_plan(owner) List~Task~
         +complete_task(pet, task) Task
         +find_conflicts(owner) List~str~
+        +next_available_slot(owner, after, step_minutes) str
         +explain(owner) str
     }
 

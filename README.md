@@ -6,7 +6,7 @@
 
 - Add an owner and multiple pets, each with their own list of care tasks
 - Give each task a time of day and how often it repeats (daily or weekly)
-- See the day's tasks sorted into chronological order across all pets
+- Set a priority (Low, Medium, High) on each task, so the day's plan sorts by priority first, then by time
 - Filter tasks by pet or by whether they're done
 - Get a warning when two tasks are booked at the same time
 - Suggest the next open time slot when you're looking for a free time to add a task
@@ -55,19 +55,19 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Running `python main.py` builds a sample owner with two pets and shows the sorting, filtering, conflict detection, and recurring-task logic in the terminal:
+Running `python main.py` builds a sample owner with two pets and shows the priority sorting, filtering, conflict detection, next-slot, and recurring-task logic in the terminal. Notice how the two High-priority tasks come first even though a Medium task is scheduled earlier in the day:
 
 ```
-Today's Schedule for Sam
+Today's Schedule for Sam (by priority, then time)
 ========================================
-08:00 - Morning walk (daily) [todo]
-08:00 - Flea meds (weekly) [todo]
-09:30 - Clean litter box (daily) [todo]
-18:00 - Dinner (daily) [todo]
+08:00 - Flea meds (weekly) [High] [todo]
+18:00 - Dinner (daily) [High] [todo]
+08:00 - Morning walk (daily) [Medium] [todo]
+09:30 - Clean litter box (daily) [Low] [todo]
 
 Just Biscuit's tasks:
-  08:00 - Morning walk (daily) [todo]
-  18:00 - Dinner (daily) [todo]
+  08:00 - Morning walk (daily) [Medium] [todo]
+  18:00 - Dinner (daily) [High] [todo]
 
 Conflicts:
   Conflict at 08:00: Morning walk (Biscuit), Flea meds (Miso)
@@ -76,7 +76,7 @@ Marking Biscuit's morning walk done (it's daily, so it should come back):
   next walk due: 2026-07-06
 
 Completed tasks so far:
-  08:00 - Morning walk (daily) [done]
+  08:00 - Morning walk (daily) [Medium] [done]
 
 Next free time slot after 08:00:
   08:30
@@ -125,6 +125,7 @@ These are the scheduling features I added, and the method that handles each one.
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
 | Task sorting | `Scheduler.sort_by_time()` | Sorts tasks by their "HH:MM" time using `sorted()` with a lambda key. |
+| Priority sorting | `Scheduler.sort_by_priority()` | Sorts by priority first (High to Low) and then by time, so urgent tasks lead the day. This is what `daily_plan()` uses. |
 | Filtering | `Scheduler.filter_by_pet()`, `Scheduler.filter_by_status()` | Pull tasks for one pet, or only the done / not-done ones. |
 | Conflict handling | `Scheduler.find_conflicts()` | Groups pending tasks by time slot and returns a warning string for any slot with more than one task. Checks exact time matches only. |
 | Recurring tasks | `Task.next_occurrence()`, `Scheduler.complete_task()` | When a daily/weekly task is completed, a new copy is added with `due_date` moved ahead using `timedelta` (daily = +1 day, weekly = +7). |
@@ -158,16 +159,16 @@ PawPal+ runs as a Streamlit web app. Start it with `streamlit run app.py` (or `p
 **Sample CLI output** (from `python main.py`):
 
 ```
-Today's Schedule for Sam
+Today's Schedule for Sam (by priority, then time)
 ========================================
-08:00 - Morning walk (daily) [todo]
-08:00 - Flea meds (weekly) [todo]
-09:30 - Clean litter box (daily) [todo]
-18:00 - Dinner (daily) [todo]
+08:00 - Flea meds (weekly) [High] [todo]
+18:00 - Dinner (daily) [High] [todo]
+08:00 - Morning walk (daily) [Medium] [todo]
+09:30 - Clean litter box (daily) [Low] [todo]
 
 Just Biscuit's tasks:
-  08:00 - Morning walk (daily) [todo]
-  18:00 - Dinner (daily) [todo]
+  08:00 - Morning walk (daily) [Medium] [todo]
+  18:00 - Dinner (daily) [High] [todo]
 
 Conflicts:
   Conflict at 08:00: Morning walk (Biscuit), Flea meds (Miso)
@@ -176,7 +177,7 @@ Marking Biscuit's morning walk done (it's daily, so it should come back):
   next walk due: 2026-07-06
 
 Completed tasks so far:
-  08:00 - Morning walk (daily) [done]
+  08:00 - Morning walk (daily) [Medium] [done]
 
 Next free time slot after 08:00:
   08:30
