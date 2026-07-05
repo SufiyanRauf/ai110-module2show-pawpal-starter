@@ -36,7 +36,10 @@ The biggest change was going from one pet to multiple pets, and moving where the
 **b. Tradeoffs**
 
 - Describe one tradeoff your scheduler makes.
+My conflict detection only flags tasks that are set to the exact same time, not tasks that overlap. So if a walk is at 08:00 and feeding is at 08:15, it won't catch that even though in real life they'd overlap. It only warns when two tasks share the same "HH:MM" slot, like two things both at 08:00.
+
 - Why is that tradeoff reasonable for this scenario?
+It's reasonable because my tasks only store a start time, not how long they take, so there's no duration to compare for overlap. Checking for exact matches is simple and easy to read, and it still catches the most obvious double-booking, which is the common case for a pet owner planning their day. If I added durations later I could make the check smarter, but for now the simpler version does the job without extra complexity I don't need yet.
 
 ---
 

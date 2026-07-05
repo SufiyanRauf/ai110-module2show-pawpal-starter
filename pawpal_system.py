@@ -3,6 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import date, timedelta
+
+# how many days to jump ahead when a recurring task is completed
+REPEAT_DAYS = {"daily": 1, "weekly": 7}
 
 
 @dataclass
@@ -13,10 +17,19 @@ class Task:
     time: str                 # time of day, e.g. "08:00"
     frequency: str            # e.g. "daily", "weekly"
     completed: bool = False
+    due_date: date = field(default_factory=date.today)
 
     def mark_complete(self) -> None:
         """Mark this task as done."""
         self.completed = True
+
+    def next_occurrence(self) -> Task | None:
+        """Return the next copy of this task, or None if it does not repeat."""
+        step = REPEAT_DAYS.get(self.frequency)
+        if step is None:
+            return None
+        return Task(self.description, self.time, self.frequency,
+                    due_date=self.due_date + timedelta(days=step))
 
     def describe(self) -> str:
         """Return a readable one-line summary of the task."""
@@ -65,18 +78,50 @@ class Scheduler:
         """Retrieve every task the owner has, across all pets."""
         return owner.all_tasks()
 
+    def sort_by_time(self, tasks: list[Task]) -> list[Task]:
+        """Return the tasks ordered by their HH:MM time."""
+        return sorted(tasks, key=lambda t: t.time)
+
+    def filter_by_status(self, tasks: list[Task], completed: bool) -> list[Task]:
+        """Return only the tasks that match the given completed flag."""
+        return [t for t in tasks if t.completed == completed]
+
+    def filter_by_pet(self, owner: Owner, pet_name: str) -> list[Task]:
+        """Return the tasks belonging to the pet with this name."""
+        tasks = []
+        for pet in owner.pets:
+            if pet.name == pet_name:
+                tasks.extend(pet.tasks)
+        return tasks
+
     def daily_plan(self, owner: Owner) -> list[Task]:
         """Return the owner's not-yet-done tasks, ordered by time of day."""
-        pending = [t for t in owner.all_tasks() if not t.completed]
-        return sorted(pending, key=lambda t: t.time)
+        pending = self.filter_by_status(owner.all_tasks(), completed=False)
+        return self.sort_by_time(pending)
 
-    def tasks_for_pet(self, pet: Pet) -> list[Task]:
-        """Return one pet's tasks, ordered by time of day."""
-        return sorted(pet.tasks, key=lambda t: t.time)
-
-    def mark_complete(self, task: Task) -> None:
-        """Mark a task as done."""
+    def complete_task(self, pet: Pet, task: Task) -> Task | None:
+        """Mark a task done, and if it repeats, add its next occurrence to the pet."""
         task.mark_complete()
+        upcoming = task.next_occurrence()
+        if upcoming is not None:
+            pet.add_task(upcoming)
+        return upcoming
+
+    def find_conflicts(self, owner: Owner) -> list[str]:
+        """Return a warning for each time slot that has more than one pending task."""
+        by_time = {}
+        for pet in owner.pets:
+            for task in pet.tasks:
+                if task.completed:
+                    continue
+                by_time.setdefault(task.time, []).append((pet, task))
+
+        warnings = []
+        for slot, items in sorted(by_time.items()):
+            if len(items) > 1:
+                names = ", ".join(f"{t.description} ({p.name})" for p, t in items)
+                warnings.append(f"Conflict at {slot}: {names}")
+        return warnings
 
     def explain(self, owner: Owner) -> str:
         """Return a short human-readable summary of today's plan."""

@@ -44,15 +44,28 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Running `python main.py` builds a sample owner with two pets and prints their combined schedule for the day, sorted by time:
+Running `python main.py` builds a sample owner with two pets and shows the sorting, filtering, conflict detection, and recurring-task logic in the terminal:
 
 ```
 Today's Schedule for Sam
 ========================================
-[ ] 07:00  Flea meds          (Miso, weekly)
-[ ] 08:00  Morning walk       (Biscuit, daily)
-[ ] 09:30  Clean litter box   (Miso, daily)
-[ ] 18:00  Dinner             (Biscuit, daily)
+08:00 - Morning walk (daily) [todo]
+08:00 - Flea meds (weekly) [todo]
+09:30 - Clean litter box (daily) [todo]
+18:00 - Dinner (daily) [todo]
+
+Just Biscuit's tasks:
+  08:00 - Morning walk (daily) [todo]
+  18:00 - Dinner (daily) [todo]
+
+Conflicts:
+  Conflict at 08:00: Morning walk (Biscuit), Flea meds (Miso)
+
+Marking Biscuit's morning walk done (it's daily, so it should come back):
+  next walk due: 2026-07-06
+
+Completed tasks so far:
+  08:00 - Morning walk (daily) [done]
 ```
 
 ## 🧪 Testing PawPal+
@@ -73,23 +86,23 @@ Sample test output:
 ============================= test session starts ==============================
 platform darwin -- Python 3.9.6, pytest-8.4.2, pluggy-1.6.0
 rootdir: /Users/sufiyanrauf/Desktop/ai110-module2show-pawpal-starter
-collected 6 items
+collected 14 items
 
-tests/test_pawpal.py ......                                              [100%]
+tests/test_pawpal.py ..............                                      [100%]
 
-============================== 6 passed in 0.01s ==============================
+============================== 14 passed in 0.01s ==============================
 ```
 
 ## 📐 Smarter Scheduling
 
-> Fill in once you've implemented scheduling logic.
+These are the scheduling features I added, and the method that handles each one. They all live in the `Scheduler` class (plus `Task` for the recurring logic) in `pawpal_system.py`.
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.sort_by_time()` | Sorts tasks by their "HH:MM" time using `sorted()` with a lambda key. |
+| Filtering | `Scheduler.filter_by_pet()`, `Scheduler.filter_by_status()` | Pull tasks for one pet, or only the done / not-done ones. |
+| Conflict handling | `Scheduler.find_conflicts()` | Groups pending tasks by time slot and returns a warning string for any slot with more than one task. Checks exact time matches only. |
+| Recurring tasks | `Task.next_occurrence()`, `Scheduler.complete_task()` | When a daily/weekly task is completed, a new copy is added with `due_date` moved ahead using `timedelta` (daily = +1 day, weekly = +7). |
 
 ## 📸 Demo Walkthrough
 
