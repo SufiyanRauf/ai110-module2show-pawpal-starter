@@ -1,6 +1,10 @@
+import os
+
 import streamlit as st
 
 from pawpal_system import Owner, Pet, Task, Scheduler
+
+DATA_FILE = "data.json"
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -8,9 +12,13 @@ st.title("🐾 PawPal+")
 st.caption("Plan the day's care tasks across all your pets.")
 
 # Streamlit reruns this whole file on every click, so a fresh Owner would wipe
-# the data each time. Keep one Owner in session_state and reuse it instead.
+# the data each time. Keep one Owner in session_state, loading a saved file if
+# there is one so pets and tasks stick around between runs.
 if "owner" not in st.session_state:
-    st.session_state.owner = Owner("Jordan")
+    if os.path.exists(DATA_FILE):
+        st.session_state.owner = Owner.load_from_json(DATA_FILE)
+    else:
+        st.session_state.owner = Owner("Jordan")
 
 owner = st.session_state.owner
 owner.name = st.text_input("Owner name", value=owner.name)
@@ -74,3 +82,8 @@ if plan:
     st.table(rows)
 else:
     st.info("Nothing scheduled yet. Add some tasks to see the plan.")
+
+st.divider()
+if st.button("Save my data"):
+    owner.save_to_json(DATA_FILE)
+    st.success("Saved to data.json. It will load automatically next time you open the app.")

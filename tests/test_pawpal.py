@@ -225,3 +225,23 @@ def test_recurring_task_keeps_its_priority():
 
     upcoming = Scheduler().complete_task(pet, walk)
     assert upcoming.priority == "High"
+
+
+def test_save_and_load_round_trip(tmp_path):
+    owner = Owner("Sam")
+    dog = Pet("Biscuit", "dog", "Golden Retriever")
+    owner.add_pet(dog)
+    dog.add_task(Task("Walk", "08:00", "daily", priority="High", due_date=date(2026, 1, 1)))
+    dog.add_task(Task("Dinner", "18:00", "daily", completed=True))
+
+    path = tmp_path / "data.json"
+    owner.save_to_json(path)
+    loaded = Owner.load_from_json(path)
+
+    assert loaded.name == "Sam"
+    assert len(loaded.pets) == 1
+    tasks = loaded.pets[0].tasks
+    assert len(tasks) == 2
+    assert tasks[0].priority == "High"
+    assert tasks[0].due_date == date(2026, 1, 1)
+    assert tasks[1].completed is True

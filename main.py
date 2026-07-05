@@ -45,3 +45,9 @@ for task in scheduler.filter_by_status(owner.all_tasks(), completed=True):
 
 print("\nNext free time slot after 08:00:")
 print("  " + scheduler.next_available_slot(owner, after="08:00"))
+
+print("\nSaving to data.json and loading it back:")
+owner.save_to_json("data.json")
+reloaded = Owner.load_from_json("data.json")
+print(f"  reloaded {reloaded.name} with {len(reloaded.pets)} pets "
+      f"and {len(reloaded.all_tasks())} tasks")

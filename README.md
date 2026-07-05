@@ -11,6 +11,7 @@
 - Get a warning when two tasks are booked at the same time
 - Suggest the next open time slot when you're looking for a free time to add a task
 - Recurring tasks reschedule themselves: finishing a daily task adds tomorrow's, weekly adds next week's
+- Save your pets and tasks to a file so they're still there next time you open the app
 - Data stays put while you use the app (Streamlit session state)
 
 ## Scenario
@@ -80,6 +81,9 @@ Completed tasks so far:
 
 Next free time slot after 08:00:
   08:30
+
+Saving to data.json and loading it back:
+  reloaded Sam with 2 pets and 5 tasks
 ```
 
 ## 🧪 Testing PawPal+
@@ -131,6 +135,24 @@ These are the scheduling features I added, and the method that handles each one.
 | Recurring tasks | `Task.next_occurrence()`, `Scheduler.complete_task()` | When a daily/weekly task is completed, a new copy is added with `due_date` moved ahead using `timedelta` (daily = +1 day, weekly = +7). |
 | Next available slot | `Scheduler.next_available_slot()` | Steps forward from a start time in fixed increments (default 30 min) and returns the first slot no pending task is using. |
 
+## 💾 Data Persistence
+
+PawPal+ can remember your pets and tasks between runs by saving them to a `data.json` file.
+
+**How it works:**
+
+- Each class knows how to turn itself into a plain dictionary (`to_dict`) and rebuild itself from one (`from_dict`). The `Owner` holds pets and each pet holds its tasks, so calling `owner.to_dict()` walks the whole tree.
+- `Owner.save_to_json()` writes that dictionary to `data.json` with `json.dump`, and `Owner.load_from_json()` reads it back and rebuilds the objects.
+- Dates don't fit in JSON directly, so a task's `due_date` is stored as an ISO string (like `"2026-01-01"`) and parsed back into a `date` on load.
+- In the app, `data.json` is loaded automatically when it exists, and a "Save my data" button writes the current state, so closing and reopening the app keeps your pets and tasks.
+
+**Files changed for this feature:**
+
+- `pawpal_system.py` — added `to_dict`/`from_dict` to `Task`, `Pet`, and `Owner`, plus `Owner.save_to_json` and `Owner.load_from_json`.
+- `app.py` — loads `data.json` on startup and added a "Save my data" button.
+- `main.py` — a small demo that saves the sample owner and loads it back.
+- `.gitignore` — ignores `data.json` since it's created at runtime, not source code.
+
 ## 📸 Demo Walkthrough
 
 PawPal+ runs as a Streamlit web app. Start it with `streamlit run app.py` (or `python3 -m streamlit run app.py`).
@@ -181,4 +203,7 @@ Completed tasks so far:
 
 Next free time slot after 08:00:
   08:30
+
+Saving to data.json and loading it back:
+  reloaded Sam with 2 pets and 5 tasks
 ```
