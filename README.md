@@ -1,6 +1,16 @@
 # PawPal+ (Module 2 Project)
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+**PawPal+** is a Streamlit app that helps a pet owner plan and organize care tasks across all of their pets.
+
+## Features
+
+- Add an owner and multiple pets, each with their own list of care tasks
+- Give each task a time of day and how often it repeats (daily or weekly)
+- See the day's tasks sorted into chronological order across all pets
+- Filter tasks by pet or by whether they're done
+- Get a warning when two tasks are booked at the same time
+- Recurring tasks reschedule themselves: finishing a daily task adds tomorrow's, weekly adds next week's
+- Data stays put while you use the app (Streamlit session state)
 
 ## Scenario
 
@@ -117,12 +127,49 @@ These are the scheduling features I added, and the method that handles each one.
 
 ## 📸 Demo Walkthrough
 
-Describe your app in numbered steps so a reader can follow along without watching a video:
+PawPal+ runs as a Streamlit web app. Start it with `streamlit run app.py` (or `python3 -m streamlit run app.py`).
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+**What you can do in the UI:**
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
+- Set the owner's name.
+- Add one or more pets (name, species, breed). Empty or duplicate names are blocked with a warning.
+- Add tasks to a pet: a description, a time in HH:MM, and how often it repeats.
+- See "Today's schedule" as a sorted table, with warnings above it for any time conflicts.
+
+**Example workflow:**
+
+1. Open the app and set the owner name (for example, "Jordan").
+2. Add a pet, like "Biscuit" the dog.
+3. Give Biscuit a couple of tasks: a "Morning walk" at 08:00 and "Dinner" at 18:00.
+4. Add a second pet, "Miso" the cat, and give it "Flea meds" at 08:00.
+5. Scroll to "Today's schedule" to see both pets' tasks sorted together by time.
+
+**Scheduler behaviors you'll notice:**
+
+- The schedule table is sorted by time even though tasks were added out of order and belong to different pets (`Scheduler.daily_plan` / `sort_by_time`).
+- Since Biscuit's walk and Miso's meds are both at 08:00, a warning appears: "Conflict at 08:00: ..." (`Scheduler.find_conflicts`).
+- Marking a daily or weekly task complete schedules its next occurrence automatically (`Scheduler.complete_task`).
+
+**Sample CLI output** (from `python main.py`):
+
+```
+Today's Schedule for Sam
+========================================
+08:00 - Morning walk (daily) [todo]
+08:00 - Flea meds (weekly) [todo]
+09:30 - Clean litter box (daily) [todo]
+18:00 - Dinner (daily) [todo]
+
+Just Biscuit's tasks:
+  08:00 - Morning walk (daily) [todo]
+  18:00 - Dinner (daily) [todo]
+
+Conflicts:
+  Conflict at 08:00: Morning walk (Biscuit), Flea meds (Miso)
+
+Marking Biscuit's morning walk done (it's daily, so it should come back):
+  next walk due: 2026-07-06
+
+Completed tasks so far:
+  08:00 - Morning walk (daily) [done]
+```
