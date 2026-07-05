@@ -8,6 +8,9 @@ from datetime import date, timedelta
 # how many days to jump ahead when a recurring task is completed
 REPEAT_DAYS = {"daily": 1, "weekly": 7}
 
+# lower number sorts first, so High priority comes before Low
+PRIORITY_ORDER = {"High": 0, "Medium": 1, "Low": 2}
+
 
 def _to_minutes(hhmm):
     """Turn an "HH:MM" string into minutes since midnight."""
@@ -27,6 +30,7 @@ class Task:
     description: str
     time: str                 # time of day, e.g. "08:00"
     frequency: str            # e.g. "daily", "weekly"
+    priority: str = "Medium"  # "Low", "Medium", or "High"
     completed: bool = False
     due_date: date = field(default_factory=date.today)
 
@@ -40,12 +44,13 @@ class Task:
         if step is None:
             return None
         return Task(self.description, self.time, self.frequency,
+                    priority=self.priority,
                     due_date=self.due_date + timedelta(days=step))
 
     def describe(self) -> str:
         """Return a readable one-line summary of the task."""
         status = "done" if self.completed else "todo"
-        return f"{self.time} - {self.description} ({self.frequency}) [{status}]"
+        return f"{self.time} - {self.description} ({self.frequency}) [{self.priority}] [{status}]"
 
 
 @dataclass
@@ -93,6 +98,10 @@ class Scheduler:
         """Return the tasks ordered by their HH:MM time."""
         return sorted(tasks, key=lambda t: t.time)
 
+    def sort_by_priority(self, tasks: list[Task]) -> list[Task]:
+        """Return the tasks ordered by priority first (High to Low), then by time."""
+        return sorted(tasks, key=lambda t: (PRIORITY_ORDER.get(t.priority, 1), t.time))
+
     def filter_by_status(self, tasks: list[Task], completed: bool) -> list[Task]:
         """Return only the tasks that match the given completed flag."""
         return [t for t in tasks if t.completed == completed]
@@ -106,9 +115,9 @@ class Scheduler:
         return tasks
 
     def daily_plan(self, owner: Owner) -> list[Task]:
-        """Return the owner's not-yet-done tasks, ordered by time of day."""
+        """Return the owner's not-yet-done tasks, ordered by priority then time."""
         pending = self.filter_by_status(owner.all_tasks(), completed=False)
-        return self.sort_by_time(pending)
+        return self.sort_by_priority(pending)
 
     def complete_task(self, pet: Pet, task: Task) -> Task | None:
         """Mark a task done, and if it repeats, add its next occurrence to the pet."""

@@ -192,3 +192,36 @@ def test_next_slot_ignores_completed_tasks():
 
     # the 08:00 task is done, so that slot is free again
     assert Scheduler().next_available_slot(owner, after="08:00") == "08:00"
+
+
+def test_default_priority_is_medium():
+    assert Task("Walk", "08:00", "daily").priority == "Medium"
+
+
+def test_sort_by_priority_puts_high_first():
+    low = Task("Play", "08:00", "daily", priority="Low")
+    high = Task("Meds", "18:00", "daily", priority="High")
+    ordered = Scheduler().sort_by_priority([low, high])
+    assert [t.description for t in ordered] == ["Meds", "Play"]
+
+
+def test_daily_plan_sorts_by_priority_then_time():
+    owner = Owner("Sam")
+    pet = Pet("Biscuit", "dog", "Golden Retriever")
+    owner.add_pet(pet)
+    pet.add_task(Task("Dinner", "18:00", "daily", priority="High"))
+    pet.add_task(Task("Walk", "08:00", "daily", priority="Medium"))
+    pet.add_task(Task("Meds", "07:00", "daily", priority="High"))
+
+    plan = Scheduler().daily_plan(owner)
+    # both High tasks first (in time order), then the Medium one
+    assert [t.description for t in plan] == ["Meds", "Dinner", "Walk"]
+
+
+def test_recurring_task_keeps_its_priority():
+    pet = Pet("Biscuit", "dog", "Golden Retriever")
+    walk = Task("Walk", "08:00", "daily", priority="High")
+    pet.add_task(walk)
+
+    upcoming = Scheduler().complete_task(pet, walk)
+    assert upcoming.priority == "High"

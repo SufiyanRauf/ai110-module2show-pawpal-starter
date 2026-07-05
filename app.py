@@ -46,9 +46,10 @@ if owner.pets:
         description = st.text_input("Task", value="Morning walk")
         time = st.text_input("Time (HH:MM)", value="08:00")
         frequency = st.selectbox("Frequency", ["daily", "weekly"])
+        priority = st.selectbox("Priority", ["High", "Medium", "Low"], index=1)
         if st.form_submit_button("Add task"):
             pet = next(p for p in owner.pets if p.name == pet_name)
-            pet.add_task(Task(description, time, frequency))
+            pet.add_task(Task(description, time, frequency, priority=priority))
             st.success(f"Added {description} for {pet_name}")
 else:
     st.caption("Add a pet first, then you can give it tasks.")
@@ -66,7 +67,8 @@ plan = scheduler.daily_plan(owner)
 if plan:
     pet_of = {id(t): p.name for p in owner.pets for t in p.tasks}
     rows = [
-        {"Time": t.time, "Task": t.description, "Pet": pet_of[id(t)], "Repeats": t.frequency}
+        {"Time": t.time, "Task": t.description, "Pet": pet_of[id(t)],
+         "Priority": t.priority, "Repeats": t.frequency}
         for t in plan
     ]
     st.table(rows)

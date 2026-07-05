@@ -8,15 +8,15 @@ miso = Pet("Miso", "cat", "Tabby")
 owner.add_pet(biscuit)
 owner.add_pet(miso)
 
-# added out of order on purpose so I can see the sorting actually work
-biscuit.add_task(Task("Dinner", "18:00", "daily"))
-biscuit.add_task(Task("Morning walk", "08:00", "daily"))
-miso.add_task(Task("Clean litter box", "09:30", "daily"))
-miso.add_task(Task("Flea meds", "08:00", "weekly"))  # same time as the walk -> conflict
+# mixed times and priorities on purpose so the sorting shows up
+biscuit.add_task(Task("Dinner", "18:00", "daily", priority="High"))
+biscuit.add_task(Task("Morning walk", "08:00", "daily", priority="Medium"))
+miso.add_task(Task("Clean litter box", "09:30", "daily", priority="Low"))
+miso.add_task(Task("Flea meds", "08:00", "weekly", priority="High"))  # same time as the walk -> conflict
 
 scheduler = Scheduler()
 
-print("Today's Schedule for " + owner.name)
+print("Today's Schedule for " + owner.name + " (by priority, then time)")
 print("=" * 40)
 for task in scheduler.daily_plan(owner):
     print(task.describe())
