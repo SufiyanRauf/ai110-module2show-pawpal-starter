@@ -1,5 +1,10 @@
 # quick script to try out the pawpal classes in the terminal
+from tabulate import tabulate
+
 from pawpal_system import Owner, Pet, Task, Scheduler
+
+# little colored dots so priority stands out at a glance
+PRIORITY_ICON = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}
 
 owner = Owner("Sam")
 
@@ -16,10 +21,14 @@ miso.add_task(Task("Flea meds", "08:00", "weekly", priority="High"))  # same tim
 
 scheduler = Scheduler()
 
-print("Today's Schedule for " + owner.name + " (by priority, then time)")
-print("=" * 40)
+print(f"🐾 Today's Schedule for {owner.name} (by priority, then time)")
+pet_of = {id(t): p.name for p in owner.pets for t in p.tasks}
+rows = []
 for task in scheduler.daily_plan(owner):
-    print(task.describe())
+    rows.append([task.time, task.description, pet_of[id(task)],
+                 f"{PRIORITY_ICON[task.priority]} {task.priority}", task.frequency])
+print(tabulate(rows, headers=["Time", "Task", "Pet", "Priority", "Repeats"],
+               tablefmt="rounded_outline"))
 
 print("\nJust Biscuit's tasks:")
 biscuit_tasks = scheduler.filter_by_pet(owner, "Biscuit")
@@ -30,9 +39,9 @@ print("\nConflicts:")
 conflicts = scheduler.find_conflicts(owner)
 if conflicts:
     for warning in conflicts:
-        print("  " + warning)
+        print("  ⚠️  " + warning)
 else:
-    print("  none")
+    print("  ✅ none")
 
 print("\nMarking Biscuit's morning walk done (it's daily, so it should come back):")
 walk = next(t for t in biscuit.tasks if t.description == "Morning walk")
@@ -41,7 +50,7 @@ print("  next walk due:", upcoming.due_date)
 
 print("\nCompleted tasks so far:")
 for task in scheduler.filter_by_status(owner.all_tasks(), completed=True):
-    print("  " + task.describe())
+    print("  ✅ " + task.describe())
 
 print("\nNext free time slot after 08:00:")
 print("  " + scheduler.next_available_slot(owner, after="08:00"))

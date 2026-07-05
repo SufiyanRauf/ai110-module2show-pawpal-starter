@@ -12,6 +12,7 @@
 - Suggest the next open time slot when you're looking for a free time to add a task
 - Recurring tasks reschedule themselves: finishing a daily task adds tomorrow's, weekly adds next week's
 - Save your pets and tasks to a file so they're still there next time you open the app
+- Clean terminal output: the schedule prints as a table with emoji cues for priority and status
 - Data stays put while you use the app (Streamlit session state)
 
 ## Scenario
@@ -56,28 +57,31 @@ pip install -r requirements.txt
 
 ## 🖥️ Sample Output
 
-Running `python main.py` builds a sample owner with two pets and shows the priority sorting, filtering, conflict detection, next-slot, and recurring-task logic in the terminal. Notice how the two High-priority tasks come first even though a Medium task is scheduled earlier in the day:
+Running `python main.py` builds a sample owner with two pets and shows the priority sorting, filtering, conflict detection, next-slot, and recurring-task logic in the terminal. The schedule is printed with the [`tabulate`](https://pypi.org/project/tabulate/) library (the `tabulate()` function with the `rounded_outline` format), and emoji cues mark priority (🔴 High, 🟡 Medium, 🟢 Low), conflicts (⚠️), and finished tasks (✅). Notice how the two High-priority tasks come first even though a Medium task is scheduled earlier in the day:
 
 ```
-Today's Schedule for Sam (by priority, then time)
-========================================
-08:00 - Flea meds (weekly) [High] [todo]
-18:00 - Dinner (daily) [High] [todo]
-08:00 - Morning walk (daily) [Medium] [todo]
-09:30 - Clean litter box (daily) [Low] [todo]
+🐾 Today's Schedule for Sam (by priority, then time)
+╭────────┬──────────────────┬─────────┬────────────┬───────────╮
+│ Time   │ Task             │ Pet     │ Priority   │ Repeats   │
+├────────┼──────────────────┼─────────┼────────────┼───────────┤
+│ 08:00  │ Flea meds        │ Miso    │ 🔴 High    │ weekly    │
+│ 18:00  │ Dinner           │ Biscuit │ 🔴 High    │ daily     │
+│ 08:00  │ Morning walk     │ Biscuit │ 🟡 Medium  │ daily     │
+│ 09:30  │ Clean litter box │ Miso    │ 🟢 Low     │ daily     │
+╰────────┴──────────────────┴─────────┴────────────┴───────────╯
 
 Just Biscuit's tasks:
   08:00 - Morning walk (daily) [Medium] [todo]
   18:00 - Dinner (daily) [High] [todo]
 
 Conflicts:
-  Conflict at 08:00: Morning walk (Biscuit), Flea meds (Miso)
+  ⚠️  Conflict at 08:00: Morning walk (Biscuit), Flea meds (Miso)
 
 Marking Biscuit's morning walk done (it's daily, so it should come back):
   next walk due: 2026-07-06
 
 Completed tasks so far:
-  08:00 - Morning walk (daily) [Medium] [done]
+  ✅ 08:00 - Morning walk (daily) [Medium] [done]
 
 Next free time slot after 08:00:
   08:30
@@ -153,6 +157,16 @@ PawPal+ can remember your pets and tasks between runs by saving them to a `data.
 - `main.py` — a small demo that saves the sample owner and loads it back.
 - `.gitignore` — ignores `data.json` since it's created at runtime, not source code.
 
+## 🎨 Output Formatting
+
+The CLI output is formatted to be easy to read:
+
+- The daily schedule is rendered as a table using the [`tabulate`](https://pypi.org/project/tabulate/) library (`tabulate()` with the `rounded_outline` style) in `main.py`.
+- Emoji cues make the schedule quick to scan: 🔴 / 🟡 / 🟢 for High / Medium / Low priority, ⚠️ for a scheduling conflict, and ✅ for a finished task.
+- In the Streamlit app the same schedule is shown with `st.table`, and conflicts use `st.warning`.
+
+Library added: `tabulate` (listed in `requirements.txt`).
+
 ## 📸 Demo Walkthrough
 
 PawPal+ runs as a Streamlit web app. Start it with `streamlit run app.py` (or `python3 -m streamlit run app.py`).
@@ -181,25 +195,28 @@ PawPal+ runs as a Streamlit web app. Start it with `streamlit run app.py` (or `p
 **Sample CLI output** (from `python main.py`):
 
 ```
-Today's Schedule for Sam (by priority, then time)
-========================================
-08:00 - Flea meds (weekly) [High] [todo]
-18:00 - Dinner (daily) [High] [todo]
-08:00 - Morning walk (daily) [Medium] [todo]
-09:30 - Clean litter box (daily) [Low] [todo]
+🐾 Today's Schedule for Sam (by priority, then time)
+╭────────┬──────────────────┬─────────┬────────────┬───────────╮
+│ Time   │ Task             │ Pet     │ Priority   │ Repeats   │
+├────────┼──────────────────┼─────────┼────────────┼───────────┤
+│ 08:00  │ Flea meds        │ Miso    │ 🔴 High    │ weekly    │
+│ 18:00  │ Dinner           │ Biscuit │ 🔴 High    │ daily     │
+│ 08:00  │ Morning walk     │ Biscuit │ 🟡 Medium  │ daily     │
+│ 09:30  │ Clean litter box │ Miso    │ 🟢 Low     │ daily     │
+╰────────┴──────────────────┴─────────┴────────────┴───────────╯
 
 Just Biscuit's tasks:
   08:00 - Morning walk (daily) [Medium] [todo]
   18:00 - Dinner (daily) [High] [todo]
 
 Conflicts:
-  Conflict at 08:00: Morning walk (Biscuit), Flea meds (Miso)
+  ⚠️  Conflict at 08:00: Morning walk (Biscuit), Flea meds (Miso)
 
 Marking Biscuit's morning walk done (it's daily, so it should come back):
   next walk due: 2026-07-06
 
 Completed tasks so far:
-  08:00 - Morning walk (daily) [Medium] [done]
+  ✅ 08:00 - Morning walk (daily) [Medium] [done]
 
 Next free time slot after 08:00:
   08:30
