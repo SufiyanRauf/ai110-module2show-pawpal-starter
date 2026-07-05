@@ -4,100 +4,84 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-# Lower number = higher priority. Used to sort tasks when planning the day.
-PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
+
+@dataclass
+class Task:
+    """A single pet care activity, e.g. a walk or a dose of medication."""
+
+    description: str
+    time: str                 # time of day, e.g. "08:00"
+    frequency: str            # e.g. "daily", "weekly"
+    completed: bool = False
+
+    def mark_complete(self) -> None:
+        """Mark this task as done."""
+        self.completed = True
+
+    def describe(self) -> str:
+        """Return a readable one-line summary of the task."""
+        status = "done" if self.completed else "todo"
+        return f"{self.time} - {self.description} ({self.frequency}) [{status}]"
 
 
 @dataclass
 class Pet:
-    """A pet being cared for."""
+    """A pet, including its own list of care tasks."""
 
     name: str
     species: str
     breed: str
+    tasks: list[Task] = field(default_factory=list)
+
+    def add_task(self, task: Task) -> None:
+        """Attach a care task to this pet."""
+        self.tasks.append(task)
 
     def describe(self) -> str:
         """Return a readable summary of the pet."""
-        ...
-
-
-@dataclass
-class Task:
-    """A single unit of pet care work (e.g., a walk or feeding)."""
-
-    name: str
-    duration: int          # minutes
-    priority: str          # "high" | "medium" | "low"
-    category: str          # walk, feeding, meds, grooming, ...
-
-    def is_high_priority(self) -> bool:
-        """Return True if this task is high priority."""
-        ...
-
-    def priority_rank(self) -> int:
-        """Return a sortable rank for this task's priority (lower = sooner)."""
-        ...
-
-    def describe(self) -> str:
-        """Return a readable one-line summary of the task."""
-        ...
+        return f"{self.name} the {self.breed} ({self.species})"
 
 
 @dataclass
 class Owner:
-    """The pet owner, holding the pet, the task list, and time constraints."""
+    """A pet owner who manages one or more pets and all their tasks."""
 
     name: str
-    available_minutes: int
-    preferences: str = ""
-    pet: Pet | None = None
-    tasks: list[Task] = field(default_factory=list)
+    pets: list[Pet] = field(default_factory=list)
 
-    def add_task(self, task: Task) -> None:
-        """Add a Task to this owner's task list."""
-        ...
+    def add_pet(self, pet: Pet) -> None:
+        """Add a pet to this owner."""
+        self.pets.append(pet)
 
-    def time_budget(self) -> int:
-        """Return how many minutes are available for care today."""
-        ...
-
-
-@dataclass
-class Plan:
-    """The result of scheduling: what made the cut, what didn't, and why."""
-
-    scheduled: list[Task] = field(default_factory=list)
-    skipped: list[Task] = field(default_factory=list)
-    reason: str = ""
-
-    def total_duration(self) -> int:
-        """Return the total minutes of all scheduled tasks."""
-        ...
-
-    def summary(self) -> str:
-        """Return a short one-line overview of the plan."""
-        ...
-
-    def to_display(self) -> str:
-        """Return the full plan formatted for display in the UI."""
-        ...
+    def all_tasks(self) -> list[Task]:
+        """Return every task across all of this owner's pets."""
+        return [task for pet in self.pets for task in pet.tasks]
 
 
 class Scheduler:
-    """Turns an owner's tasks + time budget into a daily plan."""
+    """Retrieves, organizes, and manages tasks across all of an owner's pets."""
 
-    def sort_tasks(self, tasks: list[Task]) -> list[Task]:
-        """Return tasks ordered for planning (by priority, then duration)."""
-        ...
+    def get_tasks(self, owner: Owner) -> list[Task]:
+        """Retrieve every task the owner has, across all pets."""
+        return owner.all_tasks()
 
-    def filter_tasks(self, tasks: list[Task], minutes: int) -> list[Task]:
-        """Return only the tasks that fit within the given minutes."""
-        ...
+    def daily_plan(self, owner: Owner) -> list[Task]:
+        """Return the owner's not-yet-done tasks, ordered by time of day."""
+        pending = [t for t in owner.all_tasks() if not t.completed]
+        return sorted(pending, key=lambda t: t.time)
 
-    def generate_plan(self, owner: Owner) -> Plan:
-        """Build and return a Plan from the owner's tasks and time budget."""
-        ...
+    def tasks_for_pet(self, pet: Pet) -> list[Task]:
+        """Return one pet's tasks, ordered by time of day."""
+        return sorted(pet.tasks, key=lambda t: t.time)
 
-    def explain(self, plan: Plan) -> str:
-        """Return a human-readable explanation of the plan's choices."""
-        ...
+    def mark_complete(self, task: Task) -> None:
+        """Mark a task as done."""
+        task.mark_complete()
+
+    def explain(self, owner: Owner) -> str:
+        """Return a short human-readable summary of today's plan."""
+        plan = self.daily_plan(owner)
+        if not plan:
+            return "No tasks left for today. All caught up!"
+        lines = [t.describe() for t in plan]
+        return f"{len(plan)} task(s) to do today:\n" + "\n".join(lines)

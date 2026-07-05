@@ -1,40 +1,39 @@
 classDiagram
     %% PawPal+ class diagram (working draft — update in Phase 6 to match implementation)
 
+    class Task {
+        +str description
+        +str time
+        +str frequency
+        +bool completed
+        +mark_complete() None
+        +describe() str
+    }
+
     class Pet {
         +str name
         +str species
         +str breed
+        +List~Task~ tasks
+        +add_task(task) None
         +describe() str
     }
 
     class Owner {
         +str name
-        +int available_minutes
-        +str preferences
-        +Pet pet
-        +List~Task~ tasks
-        +add_task(task) None
-        +time_budget() int
-    }
-
-    class Task {
-        +str name
-        +int duration
-        +str priority
-        +str category
-        +is_high_priority() bool
-        +describe() str
+        +List~Pet~ pets
+        +add_pet(pet) None
+        +all_tasks() List~Task~
     }
 
     class Scheduler {
-        +sort_tasks(tasks) List~Task~
-        +filter_tasks(tasks, minutes) List~Task~
-        +generate_plan(owner) List~Task~
-        +explain() str
+        +get_tasks(owner) List~Task~
+        +daily_plan(owner) List~Task~
+        +tasks_for_pet(pet) List~Task~
+        +mark_complete(task) None
+        +explain(owner) str
     }
 
-    Owner "1" --> "1" Pet : has
-    Owner "1" --> "*" Task : owns
-    Scheduler ..> Owner : reads tasks & time
-    Scheduler ..> Task : orders & filters
+    Owner "1" --> "*" Pet : manages
+    Pet "1" --> "*" Task : has
+    Scheduler ..> Owner : reads all tasks
