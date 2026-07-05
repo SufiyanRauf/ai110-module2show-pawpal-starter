@@ -124,7 +124,7 @@ tests/test_pawpal.py .................                                   [100%]
 ============================== 17 passed in 0.02s ==============================
 ```
 
-**Confidence level:** ⭐⭐⭐⭐ (4/5). The happy paths and the main edge cases all pass, so I'm fairly confident the core logic works. I held back one star because I haven't tested things like overlapping durations or badly formatted times yet.
+**Confidence level:** (4/5). The happy paths and the main edge cases all pass, so I'm fairly confident the core logic works. I held back one star because I haven't tested things like overlapping durations or badly formatted times yet.
 
 ## 📐 Smarter Scheduling
 
@@ -152,10 +152,10 @@ PawPal+ can remember your pets and tasks between runs by saving them to a `data.
 
 **Files changed for this feature:**
 
-- `pawpal_system.py` — added `to_dict`/`from_dict` to `Task`, `Pet`, and `Owner`, plus `Owner.save_to_json` and `Owner.load_from_json`.
-- `app.py` — loads `data.json` on startup and added a "Save my data" button.
-- `main.py` — a small demo that saves the sample owner and loads it back.
-- `.gitignore` — ignores `data.json` since it's created at runtime, not source code.
+- `pawpal_system.py`: added `to_dict`/`from_dict` to `Task`, `Pet`, and `Owner`, plus `Owner.save_to_json` and `Owner.load_from_json`.
+- `app.py`: loads `data.json` on startup and added a "Save my data" button.
+- `main.py`: a small demo that saves the sample owner and loads it back.
+- `.gitignore`: ignores `data.json` since it's created at runtime, not source code.
 
 ## 🎨 Output Formatting
 
