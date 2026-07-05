@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+# Lower number = higher priority. Used to sort tasks when planning the day.
+PRIORITY_ORDER = {"high": 0, "medium": 1, "low": 2}
+
 
 @dataclass
 class Pet:
@@ -31,6 +34,10 @@ class Task:
         """Return True if this task is high priority."""
         ...
 
+    def priority_rank(self) -> int:
+        """Return a sortable rank for this task's priority (lower = sooner)."""
+        ...
+
     def describe(self) -> str:
         """Return a readable one-line summary of the task."""
         ...
@@ -55,21 +62,42 @@ class Owner:
         ...
 
 
+@dataclass
+class Plan:
+    """The result of scheduling: what made the cut, what didn't, and why."""
+
+    scheduled: list[Task] = field(default_factory=list)
+    skipped: list[Task] = field(default_factory=list)
+    reason: str = ""
+
+    def total_duration(self) -> int:
+        """Return the total minutes of all scheduled tasks."""
+        ...
+
+    def summary(self) -> str:
+        """Return a short one-line overview of the plan."""
+        ...
+
+    def to_display(self) -> str:
+        """Return the full plan formatted for display in the UI."""
+        ...
+
+
 class Scheduler:
     """Turns an owner's tasks + time budget into a daily plan."""
 
     def sort_tasks(self, tasks: list[Task]) -> list[Task]:
-        """Return tasks ordered for planning (e.g., by priority)."""
+        """Return tasks ordered for planning (by priority, then duration)."""
         ...
 
     def filter_tasks(self, tasks: list[Task], minutes: int) -> list[Task]:
         """Return only the tasks that fit within the given minutes."""
         ...
 
-    def generate_plan(self, owner: Owner) -> list[Task]:
-        """Return the selected, ordered tasks for the owner's day."""
+    def generate_plan(self, owner: Owner) -> Plan:
+        """Build and return a Plan from the owner's tasks and time budget."""
         ...
 
-    def explain(self) -> str:
+    def explain(self, plan: Plan) -> str:
         """Return a human-readable explanation of the plan's choices."""
         ...
